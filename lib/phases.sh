@@ -24,6 +24,12 @@ sync_phase() {
 # automate-git.py only syncs and runs hooks when it creates chromium/src. If an
 # earlier run stopped partway, it would now skip both, so do them here first.
 finish_interrupted_sync() {
+    if ! git -C "$DL/chromium/src" rev-parse --verify -q HEAD >/dev/null; then
+        # Stopped during the first fetch: nothing checked out, nothing to keep.
+        say "sync: removing a Chromium checkout that never got its first commit"
+        rm -rf "$DL/chromium/src"
+        return 0
+    fi
     say "sync: completing an interrupted Chromium checkout"
     (cd "$DL/chromium" && run_gclient sync --nohooks --no-history)
     apply_cef_patch DEPS
