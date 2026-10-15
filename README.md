@@ -179,11 +179,16 @@ repository, on a machine of the maintainer's, from unmodified CEF and Chromium
 sources at the pinned version. Releases say which platforms they hold.
 
 Archives built elsewhere are not republished here. Karere
-(github.com/tobagin/karere) publishes CEF 150.0.10 for Linux with the same
-codec flags, which was considered and left out: those builds carry Karere's
-own patch to CEF's message pump, so they are not stock CEF 150.0.10, they come
-as zip rather than the official tar.bz2 layout, and the patch sits in a GPL 3.0
-repository with no separate licence of its own.
+(github.com/tobagin/karere) publishes CEF 150.0.10 for linux64 and linuxarm64
+with the same codec flags. We looked at them for the Linux platforms and left
+them out. Those builds carry Karere's own patch to Chromium's GLib message
+pump (`tools/cef-patches/karere-151-detach-worksource.patch`), so they are not
+stock CEF 150.0.10. They are built with other GN arguments too (no PGO, no
+ThinLTO), and they come as zip rather than the official tar.bz2. The patch
+lives in a GPL 3.0 repository and has no licence of its own, so a libcef
+that contains it would bring GPL terms into an Apache licensed program.
+Their build script, `tools/build-cef-codecs.sh`, is a useful reference for
+the GN arguments a Linux build may need (`use_sysroot=true is_cfi=false`).
 
 ## H.264 and AAC licensing
 
