@@ -41,6 +41,8 @@ mkdir -p "$DL" "$STATE" "$OUT"
 
 export GN_DEFINES="is_official_build=true proprietary_codecs=true ffmpeg_branding=Chrome ${EXTRA_GN_DEFINES-symbol_level=1}"
 export CEF_ARCHIVE_FORMAT=tar.bz2
+# So the log shows automate-git.py as it goes, not in 8 KB blocks.
+export PYTHONUNBUFFERED=1
 export PATH="$WORK/depot_tools:$PATH"
 
 say() { echo "[$(date '+%F %T')] $*" | tee -a "$LOG"; }
