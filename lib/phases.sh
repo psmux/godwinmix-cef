@@ -69,7 +69,9 @@ skip_updater_binaries() {
     "$PYTHON" - "$(native "$gclient")" "$(native "$deps")" <<'PY'
 import re, sys
 gclient, deps = sys.argv[1], sys.argv[2]
-names = sorted(set(re.findall(r"'(src/third_party/updater/[^']+/cipd)'", open(deps, encoding="utf-8").read())))
+# A CIPD dependency is named path:package in custom_deps.
+pairs = re.findall(r"'(src/third_party/updater/[^']+/cipd)':\s*\{.*?'package':\s*'([^']+)'", open(deps, encoding="utf-8").read(), re.S)
+names = sorted({f"{path}:{package}" for path, package in pairs})
 text = open(gclient, encoding="utf-8").read()
 skip = "'custom_deps': {" + "".join(f"'{n}': None, " for n in names) + "}"
 text = re.sub(r"'custom_deps': \{[^}]*\}", lambda m: skip, text)
