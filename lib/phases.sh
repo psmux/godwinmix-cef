@@ -51,10 +51,31 @@ finish_interrupted_sync() {
         return 0
     fi
     say "sync: completing an interrupted Chromium checkout"
+    skip_updater_binaries
     (cd "$DL/chromium" && run_gclient sync --nohooks --no-history)
     apply_cef_patch DEPS
     apply_cef_patch runhooks
     (cd "$DL/chromium" && run_gclient runhooks)
+}
+
+# Leaves out the prebuilt Chrome updater installers Chromium fetches for its
+# updater tests. Nothing CEF builds uses them, and Microsoft Defender quarantines
+# at least one of them (chrome_win_x86, 2026-10-16), which stops the sync with
+# "the file contains a virus or potentially unwanted software". Written into
+# the .gclient automate-git.py made, which it keeps from then on.
+skip_updater_binaries() {
+    local gclient="$DL/chromium/.gclient" deps="$DL/chromium/src/DEPS"
+    [[ -f "$gclient" && -f "$deps" ]] || return 0
+    "$PYTHON" - "$(native "$gclient")" "$(native "$deps")" <<'PY'
+import re, sys
+gclient, deps = sys.argv[1], sys.argv[2]
+names = sorted(set(re.findall(r"'(src/third_party/updater/[^']+/cipd)'", open(deps, encoding="utf-8").read())))
+text = open(gclient, encoding="utf-8").read()
+skip = "'custom_deps': {" + "".join(f"'{n}': None, " for n in names) + "}"
+text = re.sub(r"'custom_deps': \{[^}]*\}", lambda m: skip, text)
+open(gclient, "w", encoding="utf-8").write(text)
+PY
+    say "sync: leaving out Chromium's updater test binaries"
 }
 
 # Applies one of CEF's pre-sync patches unless it is absent or already applied.
