@@ -48,6 +48,7 @@ export CEF_ARCHIVE_FORMAT=tar.bz2
 # So the log shows automate-git.py as it goes, not in 8 KB blocks.
 export PYTHONUNBUFFERED=1
 export PATH="$WORK/depot_tools:$PATH"
+limit_build_jobs
 
 say() { echo "[$(date '+%F %T')] $*" | tee -a "$LOG"; }
 

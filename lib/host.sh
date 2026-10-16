@@ -129,3 +129,15 @@ limit_cpu() {
         macos) renice -n 10 -p "$pid" >/dev/null ;;
     esac
 }
+
+# macOS has no way to pin a process to some cores, so on a Mac the thread
+# limit goes to the compiler instead: an autoninja ahead of depot_tools' own
+# on PATH, which passes it -j JOBS. automate-git.py runs autoninja by name.
+limit_build_jobs() {
+    [[ "$HOST_OS" == macos && -n "${JOBS:-}" ]] || return 0
+    local shims="$WORK/shims"
+    mkdir -p "$shims"
+    printf '#!/bin/sh\nexec "%s/depot_tools/autoninja" -j %s "$@"\n' "$WORK" "$JOBS" >"$shims/autoninja"
+    chmod +x "$shims/autoninja"
+    export PATH="$shims:$PATH"
+}

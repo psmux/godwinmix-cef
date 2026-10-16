@@ -62,14 +62,25 @@ build_phase() {
     check_codec_args
 }
 
-# Refuses a build whose GN arguments lost the codec settings.
+# Refuses a build whose GN arguments lost the codec settings, and writes every
+# codec related argument GN settled on, defaults included, to
+# codec-args-<platform>.txt beside the archive.
 check_codec_args() {
-    local args="$DL/chromium/src/out/$(build_dir)/args.gn"
-    grep -q 'proprietary_codecs *= *true' "$args" && grep -q 'ffmpeg_branding *= *"Chrome"' "$args" || {
-        say "FAILED: $args does not set proprietary_codecs=true and ffmpeg_branding=\"Chrome\""
+    local out="out/$(build_dir)" list="$OUT/codec-args-$PLATFORM.txt"
+    (cd "$DL/chromium/src" && "$WORK/depot_tools/gn" args "$out" --list --short) \
+        | grep -E 'proprietary_codecs|ffmpeg_branding|hevc|h264|openh264|dolby|ac3|ac4|dts|iamf|mpeg_h|hls|mpeg2ts|dav1d|libaom|widevine|cdm' >"$list"
+    say "build: codec arguments, from gn args --list:"
+    tee -a "$LOG" <"$list"
+    grep -qx 'proprietary_codecs = true' "$list" && grep -qx 'ffmpeg_branding = "Chrome"' "$list" || {
+        say "FAILED: $out does not have proprietary_codecs = true and ffmpeg_branding = \"Chrome\""
         exit 1
     }
-    say "build: $args has proprietary_codecs=true and ffmpeg_branding=\"Chrome\""
+    # Chromium turns the platform HEVC decoder on by default on Windows, macOS
+    # and Linux once proprietary_codecs is set. Make sure nothing turned it off.
+    if ! grep -qx 'enable_platform_hevc = true' "$list"; then
+        say "FAILED: $out has enable_platform_hevc off"
+        exit 1
+    fi
 }
 
 # Make the minimal distribution archive and copy it out with its checksums.
