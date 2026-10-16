@@ -56,7 +56,7 @@ check_build_toolchain() {
     compgen -G "$(cygpath -u "$vs")/VC/Tools/MSVC/*/atlmfc/include/atlbase.h" >/dev/null || missing+=" Microsoft.VisualStudio.Component.VC.ATL"
     [[ -f "/c/Program Files (x86)/Windows Kits/10/Debuggers/x64/dbghelp.dll" ]] || missing+=" Debuggers"
     # The SDK Chromium asks for is SDK_VERSION in its vs_toolchain.py.
-    local sdk; sdk="$(sed -n "s/^SDK_VERSION = '\(.*\)'$//p" "$DL/chromium/src/build/vs_toolchain.py" 2>/dev/null)"
+    local sdk; sdk="$(sed -n "s/^SDK_VERSION = '\(.*\)'$/\1/p" "$DL/chromium/src/build/vs_toolchain.py" 2>/dev/null)"
     sdk="${sdk:-10.0.26100.0}"
     local sdk_component="Microsoft.VisualStudio.Component.Windows11SDK.$(cut -d. -f3 <<<"$sdk")"
     [[ -d "/c/Program Files (x86)/Windows Kits/10/Include/$sdk" ]] || missing+=" $sdk_component"
