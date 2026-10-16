@@ -137,15 +137,14 @@ limit_cpu() {
 }
 
 # macOS has no way to pin a process to some cores, so on a Mac the thread
-# limit goes to the compiler instead: an autoninja ahead of depot_tools' own
-# on PATH, which passes it -j JOBS. automate-git.py runs autoninja by name.
+# limit goes to the build tool instead. automate-git.py runs autoninja with no
+# -j, and autoninja runs Siso, which reads default flags from the checkout's
+# build/config/siso/.sisorc (an untracked file). Called once the checkout exists.
 limit_build_jobs() {
     [[ "$HOST_OS" == macos && -n "${JOBS:-}" ]] || return 0
-    local shims="$WORK/shims"
-    mkdir -p "$shims"
-    printf '#!/bin/sh\nexec "%s/depot_tools/autoninja" -j %s "$@"\n' "$WORK" "$JOBS" >"$shims/autoninja"
-    chmod +x "$shims/autoninja"
-    export PATH="$shims:$PATH"
+    local rc="$DL/chromium/src/build/config/siso/.sisorc"
+    [[ -d "$(dirname "$rc")" ]] || return 0
+    echo "ninja -local_jobs=$JOBS" >"$rc"
 }
 
 # Since Xcode 26 the Metal compiler is a separate download, and ANGLE compiles

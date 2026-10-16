@@ -111,6 +111,7 @@ build_dir() {
 # Generate the GN projects and build the release libcef. ninja resumes a
 # build that stopped, so running this again carries on where it was.
 build_phase() {
+    limit_build_jobs
     check_build_toolchain
     # Only this platform's configuration: GN would otherwise set up every
     # architecture it has a sysroot or an SDK for.
