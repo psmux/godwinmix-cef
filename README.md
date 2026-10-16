@@ -161,12 +161,12 @@ directories, so the second costs a build but not another sync.
 
 Ubuntu 22.04 or 24.04 on x86_64, natively or in WSL 2 with the work folder on
 the Linux filesystem. `build.sh` adds `use_sysroot=true is_cfi=false` to the
-GN arguments on Linux, so the result runs on older systems too. After the
-sync phase, install Chromium's build dependencies once and run the same
-command again:
+GN arguments on Linux, so the result runs on older systems too. Chromium's
+build dependencies come with its source, so sync first, install them once,
+then build:
 
 ```sh
-./build.sh 150.0.10+g8042e43+chromium-150.0.7871.101      # stops in the build phase on a fresh machine
+STOP_AFTER=sync ./build.sh 150.0.10+g8042e43+chromium-150.0.7871.101
 sudo ~/cef-build/<branch>/chromium/src/build/install-build-deps.sh --no-prompt --no-chromeos-fonts
 ./build.sh 150.0.10+g8042e43+chromium-150.0.7871.101
 CLEAN_OUT=1 PLATFORM=linuxarm64 ./build.sh 150.0.10+g8042e43+chromium-150.0.7871.101

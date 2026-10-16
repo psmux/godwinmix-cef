@@ -17,6 +17,7 @@
 #   MIN_FREE_GB   stop the build when free disk falls below this (default 25)
 #   FREE_GB_CMD   a command printing free GB, when df cannot see the real disk (WSL)
 #   CLEAN_OUT     1 to delete the build's objects once its archive is made
+#   STOP_AFTER    sync or build, to stop after that phase
 #   EXTRA_GN_DEFINES  added to the GN arguments (default symbol_level=0: no debug symbols, which the minimal
 #                 distribution does not carry anyway, and about half the disk)
 #   PYTHON        the Python 3 that runs automate-git.py (default python3, or python on Windows)
@@ -98,7 +99,9 @@ say "CEF $CEF_VERSION for $PLATFORM in $WORK ($free GB free, branch $CEF_BRANCH,
 say "GN_DEFINES=$GN_DEFINES"
 (( free >= MIN_FREE_GB )) || { say "STOPPED: only $free GB free, MIN_FREE_GB is $MIN_FREE_GB"; exit 3; }
 phase sync sync_phase
+[[ "${STOP_AFTER:-}" == sync ]] && { say "stopping after sync, as STOP_AFTER asks"; exit 0; }
 phase build build_phase
+[[ "${STOP_AFTER:-}" == build ]] && { say "stopping after build, as STOP_AFTER asks"; exit 0; }
 phase distrib distrib_phase
 say "done: $OUT/$(archive_name "$PLATFORM")"
 say "publish it with: ./publish.sh $CEF_VERSION"
