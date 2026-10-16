@@ -49,6 +49,7 @@ export CEF_ARCHIVE_FORMAT=tar.bz2
 export PYTHONUNBUFFERED=1
 export PATH="$WORK/depot_tools:$PATH"
 limit_build_jobs
+use_metal_toolchain
 
 say() { echo "[$(date '+%F %T')] $*" | tee -a "$LOG"; }
 

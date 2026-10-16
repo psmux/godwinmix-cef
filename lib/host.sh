@@ -147,3 +147,20 @@ limit_build_jobs() {
     chmod +x "$shims/autoninja"
     export PATH="$shims:$PATH"
 }
+
+# Since Xcode 26 the Metal compiler is a separate download, and ANGLE compiles
+# its Metal shaders during the build. Xcode's own copy (xcodebuild
+# -downloadComponent MetalToolchain) is used when it is installed. Otherwise a
+# copy unpacked under $WORK/metal (or METAL_TOOLCHAIN), which needs no admin
+# rights; README.md, macOS, says how to make one.
+use_metal_toolchain() {
+    [[ "$HOST_OS" == macos ]] || return 0
+    xcrun metal --version >/dev/null 2>&1 && return 0
+    local bin="${METAL_TOOLCHAIN:-$WORK/metal/Metal.xctoolchain}/usr/bin"
+    if [[ ! -x "$bin/metal" ]]; then
+        echo "Xcode's Metal toolchain is missing. Run: xcodebuild -downloadComponent MetalToolchain" >&2
+        echo "or unpack it to $WORK/metal/Metal.xctoolchain without admin rights, as README.md, macOS, shows" >&2
+        exit 1
+    fi
+    GN_DEFINES+=" angle_metal_toolchain_dir=$bin"
+}
