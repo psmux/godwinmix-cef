@@ -12,7 +12,7 @@
 #
 # Environment:
 #   WORK          where everything goes (C:/cef-build on Windows, ~/cef-build elsewhere)
-#   PLATFORM      windows64, macosarm64, macosx64, linux64 or linuxarm64 (default: this machine)
+#   PLATFORM      windows64, windowsarm64, macosarm64, macosx64, linux64 or linuxarm64 (default: this machine)
 #   JOBS          hardware threads the build may use (default: all)
 #   MIN_FREE_GB   stop the build when free disk falls below this (default 25)
 #   FREE_GB_CMD   a command printing free GB, when df cannot see the real disk (WSL)

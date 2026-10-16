@@ -2,8 +2,9 @@
 # the CEF platform name, the automate-git architecture flag, the toolchain
 # checks, and how to keep a build from taking every core.
 
-# Sets HOST_OS (windows, macos, linux) and PLATFORM (windows64, macosarm64,
-# macosx64, linux64, linuxarm64) for this machine, unless PLATFORM is set.
+# Sets HOST_OS (windows, macos, linux) and PLATFORM (windows64, windowsarm64,
+# macosarm64, macosx64, linux64, linuxarm64) for this machine, unless PLATFORM
+# is set. windowsarm64 is a cross build on an x64 Windows machine.
 detect_host() {
     case "$(uname -s)" in
         MINGW*|MSYS*|CYGWIN*) HOST_OS=windows ;;
@@ -24,8 +25,8 @@ detect_host() {
     fi
     case "$PLATFORM" in
         windows64|macosx64|linux64) ARCH_FLAG=--x64-build ;;
-        macosarm64|linuxarm64) ARCH_FLAG=--arm64-build ;;
-        *) echo "PLATFORM must be windows64, macosarm64, macosx64, linux64 or linuxarm64" >&2; exit 1 ;;
+        windowsarm64|macosarm64|linuxarm64) ARCH_FLAG=--arm64-build ;;
+        *) echo "PLATFORM must be windows64, windowsarm64, macosarm64, macosx64, linux64 or linuxarm64" >&2; exit 1 ;;
     esac
 }
 
@@ -54,6 +55,11 @@ check_build_toolchain() {
     compgen -G "$(cygpath -u "$vs")/VC/Tools/MSVC/*/atlmfc/include/atlbase.h" >/dev/null || missing+=" Microsoft.VisualStudio.Component.VC.ATL"
     [[ -f "/c/Program Files (x86)/Windows Kits/10/Debuggers/x64/dbghelp.dll" ]] || missing+=" Debuggers"
     [[ -d "/c/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0" ]] || missing+=" SDK26100"
+    if [[ "$PLATFORM" == windowsarm64 ]]; then
+        compgen -G "$(cygpath -u "$vs")/VC/Tools/MSVC/*/lib/arm64" >/dev/null || missing+=" Microsoft.VisualStudio.Component.VC.Tools.ARM64"
+        compgen -G "$(cygpath -u "$vs")/VC/Tools/MSVC/*/atlmfc/lib/arm64" >/dev/null || missing+=" Microsoft.VisualStudio.Component.VC.ATL.ARM64"
+        [[ -d "/c/Program Files (x86)/Windows Kits/10/Lib/10.0.26100.0/um/arm64" ]] || missing+=" SDK26100(arm64)"
+    fi
     if [[ -n "$missing" ]]; then
         echo "the Windows toolchain is missing:$missing" >&2
         echo "install it from an elevated prompt, as README.md, Windows, shows" >&2

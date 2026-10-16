@@ -31,7 +31,8 @@ cef_binary_150.0.10+g8042e43+chromium-150.0.7871.101_windows64_minimal.tar.bz2.s
 ```
 
 and an `index.json` in the format of the official index. The platforms are
-`windows64`, `macosarm64`, `macosx64`, `linux64` and `linuxarm64`; a release
+`windows64`, `windowsarm64`, `macosarm64`, `macosx64`, `linux64` and
+`linuxarm64`; a release
 lists the ones built so far.
 
 The `cef` crate takes these unchanged. Point its downloader at the release,
@@ -85,7 +86,7 @@ The settings, all optional:
 | Variable | Default | What it does |
 |---|---|---|
 | `WORK` | `C:/cef-build` on Windows, `~/cef-build` elsewhere | Everything goes here. Keep the path short on Windows |
-| `PLATFORM` | this machine | `windows64`, `macosarm64`, `macosx64`, `linux64` or `linuxarm64` |
+| `PLATFORM` | this machine | `windows64`, `windowsarm64` (cross built on x64 Windows), `macosarm64`, `macosx64`, `linux64` or `linuxarm64` |
 | `JOBS` | every thread | Hardware threads the build may use. It also runs at lower priority |
 | `MIN_FREE_GB` | 25 | The build stops when free disk falls below this. Run it again once there is room |
 | `EXTRA_GN_DEFINES` | `symbol_level=0` | Added to the GN arguments. No debug symbols: the minimal distribution does not carry them, and they double the disk |
@@ -103,7 +104,7 @@ from:
 
 | Platform | Machine | Sync | Build | Peak disk |
 |---|---|---|---|---|
-| windows64 | 16 thread laptop, 32 GB, building on 14 threads | measuring | measuring | measuring |
+| windows64 (150.0.10) | Intel Core Ultra 9 285H, 16 threads, 32 GB, building on 14 | 72 minutes | 14 hours 41 minutes, then 7 minutes for the archive | about 15 GB of objects on top of the checkout |
 
 Plan on 100 GB free before starting and 16 GB of memory at the very least; the
 link of libcef is the step that needs the memory.

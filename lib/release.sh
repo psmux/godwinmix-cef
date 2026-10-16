@@ -13,7 +13,7 @@ ensure_release() {
 # Checks the archive's name and checksum files, then uploads all three.
 upload_archive() {
     local archive="$1" name; name="$(basename "$1")"
-    if [[ ! "$name" =~ ^cef_binary_${CEF_VERSION//+/\\+}_(windows64|macosarm64|macosx64|linux64|linuxarm64)_minimal\.tar\.bz2$ ]]; then
+    if [[ ! "$name" =~ ^cef_binary_${CEF_VERSION//+/\\+}_(windows64|windowsarm64|macosarm64|macosx64|linux64|linuxarm64)_minimal\.tar\.bz2$ ]]; then
         echo "$name is not a minimal archive of $CEF_VERSION; refusing to upload it" >&2
         exit 1
     fi
