@@ -141,22 +141,62 @@ JOBS=14 ./build.sh 150.0.10+g8042e43+chromium-150.0.7871.101
 
 ### macOS
 
-Xcode (the full app, not only the command line tools) at the version the
-Chromium release asks for in its `docs/mac_build_instructions.md`, and
-`xcode-select` pointing at it. An Apple silicon Mac builds both platforms; the
-Intel one is a cross build:
+Xcode, the full app and not only the command line tools, with
+`xcode-select` pointing at it and its licence accepted. Until someone with
+an admin password accepts it, every tool in `/usr/bin` (git, python3, clang)
+exits with status 69:
 
 ```sh
 sudo xcode-select -s /Applications/Xcode.app
-git clone https://github.com/psmux/godwinmix-cef.git ~/godwinmix-cef
-cd ~/godwinmix-cef
-./build.sh 150.0.10+g8042e43+chromium-150.0.7871.101
-PLATFORM=macosx64 ./build.sh 150.0.10+g8042e43+chromium-150.0.7871.101
-./publish.sh 150.0.10+g8042e43+chromium-150.0.7871.101
+sudo xcodebuild -license accept
 ```
 
-The two platforms share one Chromium checkout and build into separate
-directories, so the second costs a build but not another sync.
+Each Mac builds its own platform natively: an Apple silicon Mac makes
+`macosarm64` and an Intel Mac makes `macosx64`. An Apple silicon Mac can also
+cross build `macosx64` from the same checkout with
+`PLATFORM=macosx64 ./build.sh <version>`, at the cost of a second build but
+not a second sync.
+
+```sh
+git clone https://github.com/psmux/godwinmix-cef.git ~/cef-build/godwinmix-cef
+cd ~/cef-build/godwinmix-cef
+JOBS=12 MIN_FREE_GB=40 caffeinate -i ./build.sh 154.0.34+g14c5a08+chromium-154.0.8037.98
+./publish.sh 154.0.34+g14c5a08+chromium-154.0.8037.98
+```
+
+`caffeinate -i` keeps the Mac from sleeping for as long as the build runs,
+and changes no setting. macOS cannot pin a process to some of its cores, so
+on a Mac `JOBS` goes to the build tool instead: `build.sh` writes
+`-local_jobs=JOBS` into the checkout's `build/config/siso/.sisorc`, an
+untracked file Siso reads. On a laptop with 24 GB of memory keep `JOBS` a
+little under the core count; the link of libcef wants several GB on its own.
+
+Since Xcode 26 the Metal compiler is a separate download, and ANGLE compiles
+its Metal shaders during the build, so a Mac without it stops a minute into
+the compile with "cannot execute tool 'metal' due to missing Metal
+Toolchain". The usual fix is
+
+```sh
+xcodebuild -downloadComponent MetalToolchain
+```
+
+That needs Xcode's first launch to have finished, which on a fresh Mac
+needs an admin (`sudo xcodebuild -runFirstLaunch`). Without admin rights,
+unpack the toolchain to `~/cef-build/metal/Metal.xctoolchain` instead, and
+`build.sh` points ANGLE at it with `angle_metal_toolchain_dir`. On a Mac whose
+`xcodebuild` works, export it without installing anything:
+
+```sh
+xcodebuild -downloadComponent MetalToolchain -exportPath ~/cef-build/metal
+mkdir ~/cef-build/metal/mnt
+hdiutil attach -nobrowse -readonly -mountpoint ~/cef-build/metal/mnt \
+  ~/cef-build/metal/MetalToolchain-*.exportedBundle/Restore/*.dmg
+cp -R ~/cef-build/metal/mnt/Metal.xctoolchain ~/cef-build/metal/
+hdiutil detach ~/cef-build/metal/mnt
+```
+
+The toolchain is a universal binary, so one copy serves an Intel Mac and an
+Apple silicon one. Set `METAL_TOOLCHAIN` if it lives somewhere else.
 
 ### Linux
 
