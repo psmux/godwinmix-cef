@@ -105,6 +105,7 @@ from:
 | Platform | Machine | Sync | Build | Peak disk |
 |---|---|---|---|---|
 | windows64 (150.0.10) | Intel Core Ultra 9 285H, 16 threads, 32 GB, building on 14 | 72 minutes | 14 hours 41 minutes, then 7 minutes for the archive | about 15 GB of objects on top of the checkout |
+| macosx64 (154.0.34) | iMac, Intel Core i9-10910, 20 threads, 128 GB, building on 18 | 77 minutes, with three restarts after googlesource answered 429 | about 5 hours 20 minutes, then 2 minutes for the archive | 46 GB in all: a 32 GB checkout and 14 GB of objects |
 
 Plan on 100 GB free before starting and 16 GB of memory at the very least; the
 link of libcef is the step that needs the memory.
