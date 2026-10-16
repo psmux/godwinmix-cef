@@ -94,6 +94,13 @@ setup_host() {
 
 # Prints free space in whole GB on the filesystem holding $1.
 free_gb() {
+    # In WSL df sees the virtual disk, not the Windows drive under it, so
+    # FREE_GB_CMD can ask Windows instead.
+    if [[ -n "${FREE_GB_CMD:-}" ]]; then
+        bash -c "$FREE_GB_CMD" | tr -dc '0-9'
+        echo
+        return
+    fi
     df -Pk "$1" | awk 'NR==2 { printf "%d\n", $4 / 1048576 }'
 }
 
