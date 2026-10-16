@@ -159,18 +159,30 @@ directories, so the second costs a build but not another sync.
 
 ### Linux
 
-Ubuntu 22.04 or 24.04 on x86_64, natively or in WSL 2 with the checkout on the
-Linux filesystem. After the sync phase, install Chromium's build dependencies
-once and run the same command again:
+Ubuntu 22.04 or 24.04 on x86_64, natively or in WSL 2 with the work folder on
+the Linux filesystem. `build.sh` adds `use_sysroot=true is_cfi=false` to the
+GN arguments on Linux, so the result runs on older systems too. After the
+sync phase, install Chromium's build dependencies once and run the same
+command again:
 
 ```sh
-./build.sh 150.0.10+g8042e43+chromium-150.0.7871.101      # stops after the sync on a fresh machine
-sudo ~/cef-build/<branch>/chromium/src/build/install-build-deps.sh --no-prompt
+./build.sh 150.0.10+g8042e43+chromium-150.0.7871.101      # stops in the build phase on a fresh machine
+sudo ~/cef-build/<branch>/chromium/src/build/install-build-deps.sh --no-prompt --no-chromeos-fonts
 ./build.sh 150.0.10+g8042e43+chromium-150.0.7871.101
-PLATFORM=linuxarm64 ./build.sh 150.0.10+g8042e43+chromium-150.0.7871.101
+CLEAN_OUT=1 PLATFORM=linuxarm64 ./build.sh 150.0.10+g8042e43+chromium-150.0.7871.101
 ```
 
-`linuxarm64` is a cross build against Chromium's arm64 sysroot.
+`linuxarm64` is a cross build from the same checkout, against Chromium's
+arm64 sysroot, which `build.sh` has CEF fetch. `CLEAN_OUT=1` deletes a
+platform's objects once its archive is made, so two platforms fit where one
+checkout does.
+
+In WSL, `df` reports the virtual disk rather than the Windows drive that
+holds it, so give `build.sh` a command that asks Windows:
+
+```sh
+export FREE_GB_CMD='powershell.exe -NoProfile -Command "[math]::Floor((Get-PSDrive C).Free / 1GB)"'
+```
 
 ## Where each archive came from
 

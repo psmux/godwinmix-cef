@@ -15,6 +15,8 @@
 #   PLATFORM      windows64, macosarm64, macosx64, linux64 or linuxarm64 (default: this machine)
 #   JOBS          hardware threads the build may use (default: all)
 #   MIN_FREE_GB   stop the build when free disk falls below this (default 25)
+#   FREE_GB_CMD   a command printing free GB, when df cannot see the real disk (WSL)
+#   CLEAN_OUT     1 to delete the build's objects once its archive is made
 #   EXTRA_GN_DEFINES  added to the GN arguments (default symbol_level=0: no debug symbols, which the minimal
 #                 distribution does not carry anyway, and about half the disk)
 #   PYTHON        the Python 3 that runs automate-git.py (default python3, or python on Windows)
@@ -40,7 +42,7 @@ OUT="$WORK/out/$RELEASE_TAG"
 LOG="$STATE/build.log"
 mkdir -p "$DL" "$STATE" "$OUT"
 
-export GN_DEFINES="is_official_build=true proprietary_codecs=true ffmpeg_branding=Chrome ${EXTRA_GN_DEFINES-symbol_level=0}"
+export GN_DEFINES="is_official_build=true proprietary_codecs=true ffmpeg_branding=Chrome ${HOST_GN_DEFINES:-} ${EXTRA_GN_DEFINES-symbol_level=0}"
 export CEF_ARCHIVE_FORMAT=tar.bz2
 # So the log shows automate-git.py as it goes, not in 8 KB blocks.
 export PYTHONUNBUFFERED=1

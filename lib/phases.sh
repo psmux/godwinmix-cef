@@ -55,6 +55,9 @@ build_dir() {
 # build that stopped, so running this again carries on where it was.
 build_phase() {
     check_build_toolchain
+    # Only this platform's configuration: GN would otherwise set up every
+    # architecture it has a sysroot or an SDK for.
+    export GN_OUT_CONFIGS="$(build_dir),$(build_dir)_sandbox"
     automate --no-update --force-build --no-distrib
     check_codec_args
 }
@@ -82,6 +85,10 @@ distrib_phase() {
     fi
     cp "$made" "$OUT/$name.part" && mv "$OUT/$name.part" "$OUT/$name"
     write_checksums "$OUT/$name"
+    if [[ "${CLEAN_OUT:-0}" == 1 ]]; then
+        say "distrib: CLEAN_OUT=1, removing out/$(build_dir) and its sandbox build"
+        rm -rf "$DL/chromium/src/out/$(build_dir)" "$DL/chromium/src/out/$(build_dir)_sandbox"
+    fi
 }
 
 # Writes <archive>.sha1 and <archive>.sha256 beside the archive, the way the

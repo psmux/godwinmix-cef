@@ -77,7 +77,18 @@ setup_host() {
         macos)
             xcode-select -p >/dev/null 2>&1 || { echo "install Xcode and run xcode-select" >&2; exit 1; }
             ;;
-        linux) ;;
+        linux)
+            # Chromium's own sysroots, so the result runs on older glibc too.
+            # CFI is off as in CEF's own Linux builds.
+            HOST_GN_DEFINES="use_sysroot=true is_cfi=false"
+            # The arm64 sysroot is only fetched when asked for.
+            [[ "$PLATFORM" == linuxarm64 ]] && export CEF_INSTALL_SYSROOT=arm64
+            ;;
+    esac
+    # A cross build needs CEF told to configure the other architecture.
+    case "$PLATFORM/$(uname -m)" in
+        macosx64/arm64) export CEF_ENABLE_AMD64=1 ;;
+        macosarm64/x86_64) export CEF_ENABLE_ARM64=1 ;;
     esac
 }
 
