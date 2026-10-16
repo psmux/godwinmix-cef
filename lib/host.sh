@@ -32,7 +32,8 @@ detect_host() {
 
 # Finds Visual Studio and tells Chromium's vs_toolchain.py where it is.
 # Chromium wants Visual Studio 2022 or 2026 with the C++ workload and ATL,
-# and Windows SDK 10.0.26100 with its Debugging Tools.
+# and the Windows SDK the Chromium checkout names (10.0.26100 for CEF 150,
+# 10.0.28000 for CEF 154) with its Debugging Tools.
 find_visual_studio() {
     local vswhere="/c/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe"
     [[ -x "$vswhere" ]] || { echo "Visual Studio is not installed; see README, Windows" >&2; exit 1; }
@@ -54,11 +55,15 @@ check_build_toolchain() {
     local vs="$GYP_MSVS_OVERRIDE_PATH" missing=""
     compgen -G "$(cygpath -u "$vs")/VC/Tools/MSVC/*/atlmfc/include/atlbase.h" >/dev/null || missing+=" Microsoft.VisualStudio.Component.VC.ATL"
     [[ -f "/c/Program Files (x86)/Windows Kits/10/Debuggers/x64/dbghelp.dll" ]] || missing+=" Debuggers"
-    [[ -d "/c/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0" ]] || missing+=" SDK26100"
+    # The SDK Chromium asks for is SDK_VERSION in its vs_toolchain.py.
+    local sdk; sdk="$(sed -n "s/^SDK_VERSION = '\(.*\)'$//p" "$DL/chromium/src/build/vs_toolchain.py" 2>/dev/null)"
+    sdk="${sdk:-10.0.26100.0}"
+    local sdk_component="Microsoft.VisualStudio.Component.Windows11SDK.$(cut -d. -f3 <<<"$sdk")"
+    [[ -d "/c/Program Files (x86)/Windows Kits/10/Include/$sdk" ]] || missing+=" $sdk_component"
     if [[ "$PLATFORM" == windowsarm64 ]]; then
         compgen -G "$(cygpath -u "$vs")/VC/Tools/MSVC/*/lib/arm64" >/dev/null || missing+=" Microsoft.VisualStudio.Component.VC.Tools.ARM64"
         compgen -G "$(cygpath -u "$vs")/VC/Tools/MSVC/*/atlmfc/lib/arm64" >/dev/null || missing+=" Microsoft.VisualStudio.Component.VC.ATL.ARM64"
-        [[ -d "/c/Program Files (x86)/Windows Kits/10/Lib/10.0.26100.0/um/arm64" ]] || missing+=" SDK26100(arm64)"
+        [[ -d "/c/Program Files (x86)/Windows Kits/10/Lib/$sdk/um/arm64" ]] || missing+=" $sdk_component(arm64 libraries)"
     fi
     if [[ -n "$missing" ]]; then
         echo "the Windows toolchain is missing:$missing" >&2

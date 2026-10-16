@@ -112,7 +112,8 @@ link of libcef is the step that needs the memory.
 ### Windows
 
 Visual Studio 2022 or 2026 (the Build Tools are enough) with the "Desktop
-development with C++" workload and ATL, and Windows SDK 10.0.26100 with its
+development with C++" workload and ATL, and the Windows SDK the Chromium
+version asks for (10.0.26100 for CEF 150, 10.0.28000 for CEF 154) with its
 Debugging Tools. Git for Windows provides the bash `build.sh` runs in, and any
 Python 3 on `PATH` runs `automate-git.py`; depot_tools brings everything else.
 From an elevated prompt, with no Visual Studio tools running:
@@ -121,7 +122,7 @@ From an elevated prompt, with no Visual Studio tools running:
 "C:\Program Files (x86)\Microsoft Visual Studio\Installer\setup.exe" modify ^
   --installPath "C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools" ^
   --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.ATL ^
-  --add Microsoft.VisualStudio.Component.Windows11SDK.26100 --quiet --norestart
+  --add Microsoft.VisualStudio.Component.Windows11SDK.28000 --quiet --norestart
 ```
 
 The Debugging Tools are an optional feature of the SDK. Add them through the
