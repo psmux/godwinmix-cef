@@ -6,7 +6,10 @@ ensure_release() {
     gh release view "$RELEASE_TAG" -R "$REPO" >/dev/null 2>&1 && return 0
     sed -e "s|@CEF_VERSION@|$CEF_VERSION|g" -e "s|@TAG@|$RELEASE_TAG|g" -e "s|@REPO@|$REPO|g" \
         "$HERE/release-notes.md" >"$STAGE/notes.md"
-    gh release create "$RELEASE_TAG" -R "$REPO" --target main \
+    # A draft, so nobody downloads a release with platforms still missing.
+    # Publish it once every platform is in and checked:
+    #   gh release edit "$RELEASE_TAG" -R "$REPO" --draft=false
+    gh release create "$RELEASE_TAG" -R "$REPO" --target main --draft \
         --title "CEF $CEF_VERSION with H.264 and AAC" --notes-file "$STAGE/notes.md"
 }
 
