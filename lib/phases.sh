@@ -19,6 +19,26 @@ phase() {
 sync_phase() {
     [[ -d "$DL/chromium/src/.git" ]] && finish_interrupted_sync
     automate --no-build --no-distrib
+    repair_empty_deps
+}
+
+# A dependency whose first fetch failed (googlesource answers 429 and 503
+# under load) is left as an empty repository, and every later gclient sync
+# skips it, so the build stops on a missing source file hours later. Remove
+# those and fetch them again.
+repair_empty_deps() {
+    local empty=() d
+    while IFS= read -r d; do
+        d="${d%/.git}"
+        git -C "$d" rev-parse --verify -q HEAD >/dev/null || empty+=("$d")
+    done < <(find "$DL/chromium/src" -name .git -prune -print)
+    (( ${#empty[@]} > 0 )) || return 0
+    say "sync: fetching again ${#empty[@]} dependencies that never got their first commit: ${empty[*]#"$DL/chromium/"}"
+    rm -rf "${empty[@]}"
+    (cd "$DL/chromium" && run_gclient sync --nohooks --no-history)
+    for d in "${empty[@]}"; do
+        git -C "$d" rev-parse --verify -q HEAD >/dev/null || { say "FAILED: $d is still empty; run the same command again"; exit 1; }
+    done
 }
 
 # automate-git.py only syncs and runs hooks when it creates chromium/src. If an
