@@ -61,23 +61,37 @@ finish_interrupted_sync() {
 # Leaves out the prebuilt Chrome updater installers Chromium fetches for its
 # updater tests. Nothing CEF builds uses them, and Microsoft Defender quarantines
 # at least one of them (chrome_win_x86, 2026-10-16), which stops the sync with
-# "the file contains a virus or potentially unwanted software". Written into
-# the .gclient automate-git.py made, which it keeps from then on.
+# "the file contains a virus or potentially unwanted software". gclient has no
+# way to leave out a CIPD dependency (custom_deps does not), so their entries
+# are taken out of the DEPS file in this checkout before it syncs again.
+# automate-git.py does not sync an existing checkout again without history, so
+# the change holds; a fresh checkout that stops here is completed by this path.
 skip_updater_binaries() {
-    local gclient="$DL/chromium/.gclient" deps="$DL/chromium/src/DEPS"
-    [[ -f "$gclient" && -f "$deps" ]] || return 0
-    "$PYTHON" - "$(native "$gclient")" "$(native "$deps")" <<'PY'
+    local deps="$DL/chromium/src/DEPS"
+    [[ -f "$deps" ]] || return 0
+    local dropped
+    dropped="$("$PYTHON" - "$(native "$deps")" <<'PY'
 import re, sys
-gclient, deps = sys.argv[1], sys.argv[2]
-# A CIPD dependency is named path:package in custom_deps.
-pairs = re.findall(r"'(src/third_party/updater/[^']+/cipd)':\s*\{.*?'package':\s*'([^']+)'", open(deps, encoding="utf-8").read(), re.S)
-names = sorted({f"{path}:{package}" for path, package in pairs})
-text = open(gclient, encoding="utf-8").read()
-skip = "'custom_deps': {" + "".join(f"'{n}': None, " for n in names) + "}"
-text = re.sub(r"'custom_deps': \{[^}]*\}", lambda m: skip, text)
-open(gclient, "w", encoding="utf-8").write(text)
+path = sys.argv[1]
+text = open(path, encoding="utf-8", newline="").read()
+out, i, dropped = [], 0, 0
+for m in re.finditer(r"\n\s*'src/third_party/updater/[^']+/cipd':\s*\{", text):
+    if m.start() < i:
+        continue
+    depth, j = 1, m.end()
+    while depth:
+        depth += {"{": 1, "}": -1}.get(text[j], 0)
+        j += 1
+    if text[j:j + 1] == ",":
+        j += 1
+    out.append(text[i:m.start()])
+    i, dropped = j, dropped + 1
+out.append(text[i:])
+open(path, "w", encoding="utf-8", newline="").write("".join(out))
+print(dropped)
 PY
-    say "sync: leaving out Chromium's updater test binaries"
+)"
+    say "sync: left $dropped updater test binary entries out of DEPS"
 }
 
 # Applies one of CEF's pre-sync patches unless it is absent or already applied.
