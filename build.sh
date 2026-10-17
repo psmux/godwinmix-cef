@@ -45,6 +45,8 @@ mkdir -p "$DL" "$STATE" "$OUT"
 
 export GN_DEFINES="is_official_build=true proprietary_codecs=true ffmpeg_branding=Chrome ${HOST_GN_DEFINES:-} ${EXTRA_GN_DEFINES-symbol_level=0}"
 export CEF_ARCHIVE_FORMAT=tar.bz2
+# CEF leaves arm64 out of the generated configs on an x64 Windows host unless asked.
+[[ "$PLATFORM" == windowsarm64 ]] && export CEF_ENABLE_ARM64=1
 # So the log shows automate-git.py as it goes, not in 8 KB blocks.
 export PYTHONUNBUFFERED=1
 export PATH="$WORK/depot_tools:$PATH"
