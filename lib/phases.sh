@@ -116,7 +116,12 @@ build_phase() {
     # Only this platform's configuration: GN would otherwise set up every
     # architecture it has a sysroot or an SDK for.
     export GN_OUT_CONFIGS="$(build_dir),$(build_dir)_sandbox"
-    automate --no-update --force-build --no-distrib
+    # The minimal archive needs libcef, not the sample apps. On Linux cefclient
+    # includes gtk.h, which CEF leaves off the include path with the sysroot,
+    # so build cefsimple there instead; it pulls in libcef just the same.
+    local target=cefclient
+    [[ "$HOST_OS" == linux ]] && target=cefsimple
+    automate --no-update --force-build --no-distrib --build-target=$target
     check_codec_args
 }
 
