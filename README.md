@@ -211,7 +211,6 @@ then build:
 ```sh
 STOP_AFTER=sync ./build.sh 150.0.10+g8042e43+chromium-150.0.7871.101
 sudo ~/cef-build/<branch>/chromium/src/build/install-build-deps.sh --no-prompt --no-chromeos-fonts
-sudo apt-get install -y libgtk-3-dev   # cefclient needs it, and the 154 build failed without it
 ./build.sh 150.0.10+g8042e43+chromium-150.0.7871.101
 CLEAN_OUT=1 PLATFORM=linuxarm64 ./build.sh 150.0.10+g8042e43+chromium-150.0.7871.101
 ```
