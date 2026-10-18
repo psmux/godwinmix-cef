@@ -119,8 +119,10 @@ build_phase() {
     # The minimal archive needs libcef, not the sample apps. On Linux cefclient
     # includes gtk.h, which CEF leaves off the include path with the sysroot,
     # so build cefsimple there instead; it pulls in libcef just the same.
+    # Windows arm64 has the same trouble at link time: the SDK there has no
+    # opengl32 import library for cefclient's OSR renderer.
     local target=cefclient
-    [[ "$HOST_OS" == linux ]] && target=cefsimple
+    [[ "$HOST_OS" == linux || "$PLATFORM" == windowsarm64 ]] && target=cefsimple
     automate --no-update --force-build --no-distrib --build-target=$target
     check_codec_args
 }
